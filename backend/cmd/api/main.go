@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"ticket-booking/config"
+	"ticket-booking/db"
 	"ticket-booking/handlers"
 	"ticket-booking/repositories"
 
@@ -8,13 +11,15 @@ import (
 )
 
 func main() {
+	envConfig := config.NewEnvConfig()
+	db := db.Init(envConfig, db.DBMigrator)
 	app := fiber.New(fiber.Config{
 		AppName:      "TickerBooking",
 		ServerHeader: "Fiber",
 	})
 
 	// repositories
-	eventRepository := repositories.NewEventRepository(nil)
+	eventRepository := repositories.NewEventRepository(db)
 
 	// Routing
 	server := app.Group("/api")
@@ -22,5 +27,5 @@ func main() {
 	// handlers
 	handlers.NewEventHandler(server.Group("/event"), eventRepository)
 
-	app.Listen(":8000")
+	app.Listen(fmt.Sprintf(":" + envConfig.ServerPort))
 }
